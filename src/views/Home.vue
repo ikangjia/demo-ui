@@ -69,12 +69,13 @@
 
 				<div style="padding: 10px 0">
 					<el-input style="width: 200px;margin-left: 5px" placeholder="请输入名称"
-							  suffix-icon="el-icon-search"></el-input>
-					<el-input style="width: 200px;margin-left: 5px" placeholder="请输入邮箱"
-							  suffix-icon="el-icon-message"></el-input>
+							  suffix-icon="el-icon-user" v-model="likeSearchFields.username"></el-input>
+					<el-input style="width: 200px;margin-left: 5px" placeholder="请输入昵称"
+							  suffix-icon="el-icon-user" v-model="likeSearchFields.nickname"></el-input>
 					<el-input style="width: 200px;margin-left: 5px" placeholder="请输入地址"
-							  suffix-icon="el-icon-position"></el-input>
-					<el-button style="margin-left: 5px" type="primary">搜索</el-button>
+							  suffix-icon="el-icon-position" v-model="likeSearchFields.address"></el-input>
+					<el-button style="margin-left: 5px" type="primary" @click="likeSearch">搜索</el-button>
+					<el-button style="margin-left: 5px" @click="resetLikeSearch">置空</el-button>
 				</div>
 
 				<div style="margin: 10px 0">
@@ -85,11 +86,13 @@
 				</div>
 
 				<el-table :data="tableData" border stripe>
-					<el-table-column label="日期" prop="date" width="140">
-					</el-table-column>
-					<el-table-column label="姓名" prop="name" width="120">
-					</el-table-column>
-					<el-table-column label="地址" prop="address"></el-table-column>
+					<el-table-column label="id" prop="id" width="50"></el-table-column>
+					<el-table-column label="用户名" prop="username" width="120"></el-table-column>
+					<el-table-column label="昵称" prop="nickname" width="120"></el-table-column>
+					<el-table-column label="邮箱" prop="email" width="150"></el-table-column>
+					<el-table-column label="手机号" prop="phone" width="120"></el-table-column>
+					<el-table-column label="地址" prop="address" width="200"></el-table-column>
+					<el-table-column label="创建时间" prop="createTime" width="150"></el-table-column>
 
 					<el-table-column>
 						<template slot-scope="scope">
@@ -101,10 +104,13 @@
 
 				<div style="padding: 10px 0">
 					<el-pagination
+						@size-change="handleSizeChange"
+						@current-change="handleCurrentChange"
 						:page-sizes="[5, 10, 20, 50]"
-						:page-size="10"
+						:page-size="pageSize"
+						:current-page="pageNum"
 						layout="total, sizes, prev, pager, next, jumper"
-						:total="400">
+						:total="total">
 					</el-pagination>
 				</div>
 			</el-main>
@@ -115,23 +121,48 @@
 
 <script>
 
+import request from "@/utils/request";
+
 export default {
-	name: "HomeView",
+	name: "Home",
 	data() {
-		const item = {
-			date: "2016-05-02",
-			name: "王小虎",
-			address: "上海市普陀区金沙江路 1518 弄",
-		};
 		return {
-			tableData: Array(10).fill(item),
+			likeSearchFields: {
+				username: '',
+				nickname: '',
+				address: ''
+			},
+			tableData: [],
+			total: 0,
+			pageSize: 10,
+			pageNum: 1,
 			collapseBtnClass: "el-icon-s-fold",
 			isCollapse: false,
 			sideWidth: 200,
 			logoTextShow: true,
 		};
 	},
+	created() {
+		this.load()
+	},
 	methods: {
+		likeSearch() {
+			this.load()
+		},
+		resetLikeSearch() {
+			this.likeSearchFields.username = ''
+			this.likeSearchFields.nickname = ''
+			this.likeSearchFields.address = ''
+			this.load()
+		},
+		handleSizeChange(pageSize) {
+			this.pageSize = pageSize
+			this.load()
+		},
+		handleCurrentChange(pageNum) {
+			this.pageNum = pageNum
+			this.load()
+		},
 		collapse() { // 点击收缩按钮触发
 			this.isCollapse = !this.isCollapse;
 			if (this.isCollapse) {
@@ -144,6 +175,19 @@ export default {
 				this.logoTextShow = true
 			}
 		},
+		load() {
+			fetch('http://localhost:12001/user?pageNum=' + this.pageNum
+				+ '&pageSize=' + this.pageSize
+				+ '&username=' + this.likeSearchFields.username
+				+ '&nickname=' + this.likeSearchFields.nickname
+				+ '&address=' + this.likeSearchFields.address)
+				.then(res => res.json())
+				.then(res => {
+					console.log(res)
+					this.tableData = res.data.userDTOList;
+					this.total = res.data.total
+				})
+		}
 	},
 };
 </script>
