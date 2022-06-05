@@ -73,7 +73,7 @@
 							  suffix-icon="el-icon-user" v-model="likeSearchFields.nickname"></el-input>
 					<el-input style="width: 200px;margin-left: 5px" placeholder="请输入地址"
 							  suffix-icon="el-icon-position" v-model="likeSearchFields.address"></el-input>
-					<el-button style="margin-left: 5px" type="primary" @click="likeSearch">搜索</el-button>
+					<el-button style="margin-left: 5px" type="primary" @click="this.load">搜索</el-button>
 					<el-button style="margin-left: 5px" @click="resetLikeSearch">置空</el-button>
 				</div>
 
@@ -81,13 +81,14 @@
 				<div style="margin: 10px 0">
 					<el-button type="primary" @click="openCreateUserDialog">新增 <i
 						class="el-icon-circle-plus-outline"></i></el-button>
-					<el-button type="danger">批量删除 <i class="el-icon-remove-outline"></i></el-button>
+					<el-button type="danger" @click="batchDel">批量删除 <i class="el-icon-remove-outline"></i></el-button>
 					<el-button type="primary">导入 <i class="el-icon-bottom"></i></el-button>
 					<el-button type="primary">导出 <i class="el-icon-top"></i></el-button>
 				</div>
 
 				<!-- 表格区域 -->
-				<el-table :data="tableData" border stripe>
+				<el-table :data="tableData" border stripe ref="tableData">
+					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column label="id" prop="id" width="50"></el-table-column>
 					<el-table-column label="用户名" prop="username" width="120"></el-table-column>
 					<el-table-column label="昵称" prop="nickname" width="120"></el-table-column>
@@ -98,8 +99,11 @@
 
 					<el-table-column>
 						<template slot-scope="scope">
+							<el-button type="info">详情 <i class="el-icon-search"></i></el-button>
 							<el-button type="warning">编辑 <i class="el-icon-edit"></i></el-button>
-							<el-button type="success">删除 <i class="el-icon-remove-outline"></i></el-button>
+							<el-button type="danger" @click="del(scope.row.id)">删除 <i
+								class="el-icon-remove-outline"></i>
+							</el-button>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -203,6 +207,60 @@ export default {
 			this.userCreateDialogFormVisible = true
 			this.form = {};
 		},
+		// 删除用户
+		del(id) {
+			this.$confirm('确认要删除该用户?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				this.request.delete("/user/" + id)
+					.then(res => {
+						if (res.code === 0) {
+							this.$message.success("删除用户成功~")
+							this.load()
+						} else {
+							this.$message.error(res.message)
+						}
+					})
+			}).catch(() => {
+				this.$message({
+					type: 'info',
+					message: '已取消删除'
+				});
+			});
+		},
+		// 批量删除用户
+		batchDel() {
+			let idList = []
+			this.$refs.tableData.selection.forEach(row => {
+				idList.push(row.id)
+			})
+			this.$confirm('确认要批量删除这些用户吗?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				this.request.delete("/user/del/batch", {
+					params: {
+						ids: idList.toString()
+					}
+				}).then(res => {
+					if (res.code === 0) {
+						this.$message.success("删除用户成功~")
+						this.load()
+					} else {
+						this.$message.error(res.message)
+					}
+				})
+			}).catch(() => {
+				this.$message({
+					type: 'info',
+					message: '已取消删除'
+				});
+			});
+		},
+		// 保存用户
 		saveUser(formName) {
 			this.$refs[formName].validate((valid) => {
 				if (valid) {
@@ -223,9 +281,7 @@ export default {
 			})
 
 		},
-		likeSearch() {
-			this.load()
-		},
+
 		// 模糊搜索重置事件处理
 		resetLikeSearch() {
 			this.likeSearchFields.username = ''
@@ -233,6 +289,7 @@ export default {
 			this.likeSearchFields.address = ''
 			this.load()
 		},
+
 		handleSizeChange(pageSize) {
 			this.pageSize = pageSize
 			this.load()
@@ -241,6 +298,7 @@ export default {
 			this.pageNum = pageNum
 			this.load()
 		},
+
 		// 点击收缩按钮触发侧边栏收缩
 		collapse() {
 			this.isCollapse = !this.isCollapse;
@@ -254,6 +312,7 @@ export default {
 				this.logoTextShow = true
 			}
 		},
+
 		// 加载表格数据
 		load() {
 			this.request.get("/user", {

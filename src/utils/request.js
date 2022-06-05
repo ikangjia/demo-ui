@@ -14,7 +14,6 @@ request.interceptors.request.use(config => {
 	// config.headers['token'] = user.token;  // 设置请求头
 	return config
 }, error => {
-	this.$message.error("服务器错误")
 	return Promise.reject(error)
 });
 
@@ -35,7 +34,6 @@ request.interceptors.response.use(
 	},
 	error => {
 		console.log('err' + error) // for debug
-		this.$message.error("内部错误")
 		return Promise.reject(error)
 	}
 )
