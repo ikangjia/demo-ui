@@ -14,7 +14,7 @@
 				<div style="height: 60px; line-height: 60px; text-align: center">
 					<img src="../assets/logo.png" alt="logo"
 						 style="width: 20px; position: relative;top: 5px;margin-right: 5px">
-					<b v-show="logoTextShow" style="color: white">后台管理系统</b>
+					<b style="color: white">后台管理系统</b>
 				</div>
 				<el-submenu index="1">
 					<template slot="title">
@@ -65,6 +65,7 @@
 					<el-breadcrumb-item>用户管理</el-breadcrumb-item>
 				</el-breadcrumb>
 
+				<!-- 模糊搜索区域-->
 				<div style="padding: 10px 0">
 					<el-input style="width: 200px;margin-left: 5px" placeholder="请输入名称"
 							  suffix-icon="el-icon-user" v-model="likeSearchFields.username"></el-input>
@@ -76,13 +77,16 @@
 					<el-button style="margin-left: 5px" @click="resetLikeSearch">置空</el-button>
 				</div>
 
+				<!-- 按钮区域-->
 				<div style="margin: 10px 0">
-					<el-button type="primary">新增 <i class="el-icon-circle-plus-outline"></i></el-button>
+					<el-button type="primary" @click="openCreateUserDialog">新增 <i
+						class="el-icon-circle-plus-outline"></i></el-button>
 					<el-button type="danger">批量删除 <i class="el-icon-remove-outline"></i></el-button>
 					<el-button type="primary">导入 <i class="el-icon-bottom"></i></el-button>
 					<el-button type="primary">导出 <i class="el-icon-top"></i></el-button>
 				</div>
 
+				<!-- 表格区域 -->
 				<el-table :data="tableData" border stripe>
 					<el-table-column label="id" prop="id" width="50"></el-table-column>
 					<el-table-column label="用户名" prop="username" width="120"></el-table-column>
@@ -100,6 +104,7 @@
 					</el-table-column>
 				</el-table>
 
+				<!-- 分页区域 -->
 				<div style="padding: 10px 0">
 					<el-pagination
 						@size-change="handleSizeChange"
@@ -111,6 +116,32 @@
 						:total="total">
 					</el-pagination>
 				</div>
+
+				<!-- 对话框与弹框区域 -->
+				<el-dialog title="新增用户" :visible.sync="userCreateDialogFormVisible" width="500px">
+					<el-form :model="form" :rules="rules" ref="form">
+						<el-form-item label="用户名" label-width="80px" prop="username">
+							<el-input v-model="form.username" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="昵称" label-width="80px" prop="nickname">
+							<el-input v-model="form.nickname" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="邮箱" label-width="80px" prop="email">
+							<el-input v-model="form.email" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="手机号" label-width="80px" prop="phone">
+							<el-input v-model="form.phone" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="地址" label-width="80px" prop="address">
+							<el-input v-model="form.address" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+					</el-form>
+					<div slot="footer" class="dialog-footer">
+						<el-button @click="userCreateDialogFormVisible = false">取 消</el-button>
+						<el-button type="primary" @click="saveUser('form')">确 定</el-button>
+					</div>
+				</el-dialog>
+
 			</el-main>
 
 		</el-container>
@@ -118,35 +149,84 @@
 </template>
 
 <script>
-
-import request from "@/utils/request";
-
 export default {
 	name: "Home",
 	data() {
 		return {
+			form: {},
+			userCreateDialogFormVisible: false,
+			// 模糊搜索字段
 			likeSearchFields: {
 				username: '',
 				nickname: '',
 				address: ''
 			},
+			// 表格数据
 			tableData: [],
+
+			// 分页字段
 			total: 0,
 			pageSize: 10,
 			pageNum: 1,
+
+			// 样式相关
 			collapseBtnClass: "el-icon-s-fold",
 			isCollapse: false,
 			sideWidth: 200,
-			logoTextShow: true,
+			rules: {
+				username: [
+					{required: true, message: '请输入用户名', trigger: 'blur'},
+					{min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur'}
+				],
+				nickname: [
+					{required: true, message: '请输入昵称', trigger: 'blur'},
+					{min: 1, max: 12, message: '长度在 1 到 12 个字符', trigger: 'blur'}
+				],
+				email: [
+					{required: true, message: '请输入邮箱地址', trigger: 'blur'},
+					{type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change']}
+				],
+				phone: [
+					{pattern: /^1[3456789]\d{9}$/, message: '手机号码格式不正确', trigger: 'blur'}
+				],
+				address: [
+					{min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur'}
+				]
+			}
 		};
 	},
 	created() {
 		this.load()
 	},
 	methods: {
+		openCreateUserDialog() {
+			this.userCreateDialogFormVisible = true
+			this.form = {};
+		},
+		saveUser(formName) {
+			this.$refs[formName].validate((valid) => {
+				if (valid) {
+					this.request.post("/user", this.form)
+						.then(res => {
+							if (res.code === 0) {
+								this.$message.success("添加用户成功~")
+								this.load()
+								this.form = {}
+								this.userCreateDialogFormVisible = false
+							} else {
+								this.$message.error(res.message)
+							}
+						})
+				} else {
+					return false
+				}
+			})
+
+		},
 		likeSearch() {
 			this.load()
 		},
+		// 模糊搜索重置事件处理
 		resetLikeSearch() {
 			this.likeSearchFields.username = ''
 			this.likeSearchFields.nickname = ''
@@ -161,7 +241,8 @@ export default {
 			this.pageNum = pageNum
 			this.load()
 		},
-		collapse() { // 点击收缩按钮触发
+		// 点击收缩按钮触发侧边栏收缩
+		collapse() {
 			this.isCollapse = !this.isCollapse;
 			if (this.isCollapse) {
 				this.sideWidth = 64
@@ -173,18 +254,20 @@ export default {
 				this.logoTextShow = true
 			}
 		},
+		// 加载表格数据
 		load() {
-			fetch('http://localhost:12001/user?pageNum=' + this.pageNum
-				+ '&pageSize=' + this.pageSize
-				+ '&username=' + this.likeSearchFields.username
-				+ '&nickname=' + this.likeSearchFields.nickname
-				+ '&address=' + this.likeSearchFields.address)
-				.then(res => res.json())
-				.then(res => {
-					console.log(res)
-					this.tableData = res.data.userDTOList;
-					this.total = res.data.total
-				})
+			this.request.get("/user", {
+				params: {
+					pageSize: this.pageSize,
+					pageNum: this.pageNum,
+					username: this.likeSearchFields.username,
+					nickname: this.likeSearchFields.nickname,
+					address: this.likeSearchFields.address,
+				}
+			}).then(res => {
+				this.tableData = res.data.userDTOList
+				this.total = res.data.total
+			})
 		}
 	},
 };
