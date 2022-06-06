@@ -12,7 +12,10 @@
              style="width: 20px; position: relative;top: 5px;margin-right: 5px">
         <b style="color: white" v-show="logoTextShow">后台管理系统</b>
       </div>
-      <el-menu-item index="/"><i class="el-icon-house"></i>首页</el-menu-item>
+      <el-menu-item index="/">
+        <i class="el-icon-house"></i>
+        <span slot="title">首页</span>
+      </el-menu-item>
       <el-submenu index="2">
         <template slot="title">
           <i class="el-icon-menu"></i>
