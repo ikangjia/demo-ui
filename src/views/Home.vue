@@ -7,7 +7,7 @@
 			<el-menu
 				:collapse="isCollapse"
 				:collapse-transition="false"
-				:default-openeds="['1', '3']"
+				:default-openeds="['2-1']"
 				background-color="#545c64"
 				style="min-height: 100%; overflow-x: hidden" text-color="#fff"
 			>
@@ -16,23 +16,14 @@
 						 style="width: 20px; position: relative;top: 5px;margin-right: 5px">
 					<b style="color: white">后台管理系统</b>
 				</div>
-				<el-submenu index="1">
-					<template slot="title">
-						<i class="el-icon-message"></i>
-						<span slot="title">导航一</span>
-					</template>
-					<el-menu-item index="1-1">选项1</el-menu-item>
-					<el-menu-item index="1-2">选项2</el-menu-item>
-					<el-menu-item index="1-3">选项3</el-menu-item>
-				</el-submenu>
+				<el-menu-item index="1"><i class="el-icon-house"></i>首页</el-menu-item>
 				<el-submenu index="2">
-					<template slot="title"><i class="el-icon-menu"></i>
-						<span slot="title">导航二</span></template>
-					<el-menu-item index="2-1">选项1</el-menu-item>
-					<el-submenu index="2-4">
-						<template slot="title">选项4</template>
-						<el-menu-item index="2-4-1">选项4-1</el-menu-item>
-					</el-submenu>
+					<template slot="title">
+						<i class="el-icon-menu"></i>
+						<span slot="title">系统管理</span>
+					</template>
+					<el-menu-item index="2-1"><i class="el-icon-user"></i>用户管理</el-menu-item>
+					<el-menu-item index="2-2"><i class="el-icon-user"></i>权限管理</el-menu-item>
 				</el-submenu>
 			</el-menu>
 
@@ -99,8 +90,10 @@
 
 					<el-table-column>
 						<template slot-scope="scope">
-							<el-button type="info" @click="openDetailUserDialog(scope.row.id)">详情 <i class="el-icon-search"></i></el-button>
-							<el-button type="warning" @click="openUpdateUserDialog(scope.row.id)">编辑 <i class="el-icon-edit"></i></el-button>
+							<el-button type="info" @click="openDetailUserDialog(scope.row.id)">详情 <i
+								class="el-icon-search"></i></el-button>
+							<el-button type="warning" @click="openUpdateUserDialog(scope.row.id)">编辑 <i
+								class="el-icon-edit"></i></el-button>
 							<el-button type="danger" @click="del(scope.row.id)">删除 <i
 								class="el-icon-remove-outline"></i>
 							</el-button>
@@ -149,7 +142,8 @@
 				<el-dialog title="修改用户" :visible.sync="userUpdateDialogFormVisible" width="500px">
 					<el-form :model="formUpdate" :rules="rules" ref="formUpdate">
 						<el-form-item label="ID" label-width="80px">
-							<el-input v-model="formUpdate.id" autocomplete="off" style="width: 150px" readonly></el-input>
+							<el-input v-model="formUpdate.id" autocomplete="off" style="width: 150px"
+									  readonly></el-input>
 						</el-form-item>
 						<el-form-item label="用户名" label-width="80px" prop="username">
 							<el-input v-model="formUpdate.username" autocomplete="off" style="width: 150px"></el-input>
@@ -167,10 +161,12 @@
 							<el-input v-model="formUpdate.address" autocomplete="off" style="width: 150px"></el-input>
 						</el-form-item>
 						<el-form-item label="创建时间" label-width="80px">
-							<el-input v-model="formUpdate.createTime" autocomplete="off" style="width: 150px" readonly></el-input>
+							<el-input v-model="formUpdate.createTime" autocomplete="off" style="width: 150px"
+									  readonly></el-input>
 						</el-form-item>
 						<el-form-item label="修改时间" label-width="80px">
-							<el-input v-model="formUpdate.updateTime" autocomplete="off" style="width: 150px" readonly></el-input>
+							<el-input v-model="formUpdate.updateTime" autocomplete="off" style="width: 150px"
+									  readonly></el-input>
 						</el-form-item>
 					</el-form>
 					<div slot="footer" class="dialog-footer">
@@ -179,6 +175,21 @@
 					</div>
 				</el-dialog>
 
+				<el-dialog title="用户详情" :visible.sync="userDetailVisible" width="800px">
+					<el-descriptions title="用户信息" :column="2" border>
+						<template slot="extra">
+							<el-button type="primary" size="small" @click="exportUserDetailInfo">导出信息</el-button>
+						</template>
+						<el-descriptions-item label="ID">{{ userDetail.id }}</el-descriptions-item>
+						<el-descriptions-item label="用户名">{{ userDetail.username }}</el-descriptions-item>
+						<el-descriptions-item label="昵称">{{ userDetail.nickname }}</el-descriptions-item>
+						<el-descriptions-item label="邮箱">{{ userDetail.email }}</el-descriptions-item>
+						<el-descriptions-item label="手机号">{{ userDetail.phone }}</el-descriptions-item>
+						<el-descriptions-item label="地址">{{ userDetail.address }}</el-descriptions-item>
+						<el-descriptions-item label="创建时间">{{ userDetail.createTime }}</el-descriptions-item>
+						<el-descriptions-item label="修改时间">{{ userDetail.updateTime }}</el-descriptions-item>
+					</el-descriptions>
+				</el-dialog>
 			</el-main>
 
 		</el-container>
@@ -190,6 +201,8 @@ export default {
 	name: "Home",
 	data() {
 		return {
+			userDetail: {},
+			userDetailVisible: false,
 			form: {},
 			userCreateDialogFormVisible: false,
 			formUpdate: {},
@@ -238,9 +251,21 @@ export default {
 		this.load()
 	},
 	methods: {
+		exportUserDetailInfo() {
+			console.log(this.userDetail)
+
+		},
 		//  打开查看用户详情对话框
 		openDetailUserDialog(id) {
-
+			this.request.get("/user/" + id)
+				.then(res => {
+					if (res.code === 0) {
+						this.userDetail = res.data
+					} else {
+						this.$message.error(res.message)
+					}
+				})
+			this.userDetailVisible = true
 		},
 		// 打开创建新用户对话框
 		openCreateUserDialog() {
