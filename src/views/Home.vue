@@ -74,7 +74,7 @@
 						class="el-icon-circle-plus-outline"></i></el-button>
 					<el-button type="danger" @click="batchDel">批量删除 <i class="el-icon-remove-outline"></i></el-button>
 					<el-button type="primary">导入 <i class="el-icon-bottom"></i></el-button>
-					<el-button type="primary">导出 <i class="el-icon-top"></i></el-button>
+					<el-button type="primary" @click="exportAll">导出 <i class="el-icon-top"></i></el-button>
 				</div>
 
 				<!-- 表格区域 -->
@@ -251,6 +251,10 @@ export default {
 		this.load()
 	},
 	methods: {
+		// 导出所有用户信息
+		exportAll() {
+			window.location.href = "http://localhost:12001/user/export"
+		},
 		// 用户详情页面点击导出用户信息为 Excel
 		exportUserDetailInfo() {
 			// 该方法会新开一个页面，再弹窗选择下载地址操作，显然不友好
