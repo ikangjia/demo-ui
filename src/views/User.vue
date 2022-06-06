@@ -198,7 +198,7 @@
 
 <script>
 export default {
-	name: "Home",
+	name: "user",
 	data() {
 		return {
 			userDetail: {},
