@@ -251,9 +251,12 @@ export default {
 		this.load()
 	},
 	methods: {
+		// 用户详情页面点击导出用户信息为 Excel
 		exportUserDetailInfo() {
-			console.log(this.userDetail)
-
+			// 该方法会新开一个页面，再弹窗选择下载地址操作，显然不友好
+			// window.open("http://localhost:12001/user/export/" + this.userDetail.id)
+			// 直接再当前页面弹出下载窗口
+			window.location.href = "http://localhost:12001/user/export/" + this.userDetail.id
 		},
 		//  打开查看用户详情对话框
 		openDetailUserDialog(id) {
