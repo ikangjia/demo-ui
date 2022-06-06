@@ -99,8 +99,8 @@
 
 					<el-table-column>
 						<template slot-scope="scope">
-							<el-button type="info">详情 <i class="el-icon-search"></i></el-button>
-							<el-button type="warning">编辑 <i class="el-icon-edit"></i></el-button>
+							<el-button type="info" @click="openDetailUserDialog(scope.row.id)">详情 <i class="el-icon-search"></i></el-button>
+							<el-button type="warning" @click="openUpdateUserDialog(scope.row.id)">编辑 <i class="el-icon-edit"></i></el-button>
 							<el-button type="danger" @click="del(scope.row.id)">删除 <i
 								class="el-icon-remove-outline"></i>
 							</el-button>
@@ -142,7 +142,40 @@
 					</el-form>
 					<div slot="footer" class="dialog-footer">
 						<el-button @click="userCreateDialogFormVisible = false">取 消</el-button>
-						<el-button type="primary" @click="saveUser('form')">确 定</el-button>
+						<el-button type="primary" @click="addUser('form')">确 定</el-button>
+					</div>
+				</el-dialog>
+
+				<el-dialog title="修改用户" :visible.sync="userUpdateDialogFormVisible" width="500px">
+					<el-form :model="formUpdate" :rules="rules" ref="formUpdate">
+						<el-form-item label="ID" label-width="80px">
+							<el-input v-model="formUpdate.id" autocomplete="off" style="width: 150px" readonly></el-input>
+						</el-form-item>
+						<el-form-item label="用户名" label-width="80px" prop="username">
+							<el-input v-model="formUpdate.username" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="昵称" label-width="80px" prop="nickname">
+							<el-input v-model="formUpdate.nickname" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="邮箱" label-width="80px" prop="email">
+							<el-input v-model="formUpdate.email" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="手机号" label-width="80px" prop="phone">
+							<el-input v-model="formUpdate.phone" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="地址" label-width="80px" prop="address">
+							<el-input v-model="formUpdate.address" autocomplete="off" style="width: 150px"></el-input>
+						</el-form-item>
+						<el-form-item label="创建时间" label-width="80px">
+							<el-input v-model="formUpdate.createTime" autocomplete="off" style="width: 150px" readonly></el-input>
+						</el-form-item>
+						<el-form-item label="修改时间" label-width="80px">
+							<el-input v-model="formUpdate.updateTime" autocomplete="off" style="width: 150px" readonly></el-input>
+						</el-form-item>
+					</el-form>
+					<div slot="footer" class="dialog-footer">
+						<el-button @click="userUpdateDialogFormVisible = false">取 消</el-button>
+						<el-button type="primary" @click="updateUser('formUpdate')">确 定</el-button>
 					</div>
 				</el-dialog>
 
@@ -159,6 +192,8 @@ export default {
 		return {
 			form: {},
 			userCreateDialogFormVisible: false,
+			formUpdate: {},
+			userUpdateDialogFormVisible: false,
 			// 模糊搜索字段
 			likeSearchFields: {
 				username: '',
@@ -203,9 +238,26 @@ export default {
 		this.load()
 	},
 	methods: {
+		//  打开查看用户详情对话框
+		openDetailUserDialog(id) {
+
+		},
+		// 打开创建新用户对话框
 		openCreateUserDialog() {
 			this.userCreateDialogFormVisible = true
 			this.form = {};
+		},
+		//  打开修改用户对话框
+		openUpdateUserDialog(id) {
+			this.request.get("/user/" + id)
+				.then(res => {
+					if (res.code === 0) {
+						this.formUpdate = res.data
+					} else {
+						this.$message.error(res.message)
+					}
+				})
+			this.userUpdateDialogFormVisible = true
 		},
 		// 删除用户
 		del(id) {
@@ -236,6 +288,10 @@ export default {
 			this.$refs.tableData.selection.forEach(row => {
 				idList.push(row.id)
 			})
+			if (idList.length === 0) {
+				this.$message.warning("未选中任何数据")
+				return false;
+			}
 			this.$confirm('确认要批量删除这些用户吗?', '提示', {
 				confirmButtonText: '确定',
 				cancelButtonText: '取消',
@@ -260,8 +316,8 @@ export default {
 				});
 			});
 		},
-		// 保存用户
-		saveUser(formName) {
+		// 添加用户
+		addUser(formName) {
 			this.$refs[formName].validate((valid) => {
 				if (valid) {
 					this.request.post("/user", this.form)
@@ -279,7 +335,26 @@ export default {
 					return false
 				}
 			})
-
+		},
+		// 修改用户
+		updateUser(formName) {
+			this.$refs[formName].validate((valid) => {
+				if (valid) {
+					this.request.post("/user", this.formUpdate)
+						.then(res => {
+							if (res.code === 0) {
+								this.$message.success("修改用户成功~")
+								this.load()
+								this.form = {}
+								this.userUpdateDialogFormVisible = false
+							} else {
+								this.$message.error(res.message)
+							}
+						})
+				} else {
+					return false
+				}
+			})
 		},
 
 		// 模糊搜索重置事件处理
@@ -313,7 +388,7 @@ export default {
 			}
 		},
 
-		// 加载表格数据
+		// 加载表格数据，这是个复用度很高的方法
 		load() {
 			this.request.get("/user", {
 				params: {
