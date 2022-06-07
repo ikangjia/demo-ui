@@ -10,7 +10,7 @@
 			<img src="" alt="aaa">
 
 			<div style="margin-top: 20px; text-align: center">
-				<el-button size="medium" type="primary" style="width: 100px;margin-right: 30px" round>登录</el-button>
+				<el-button size="medium" type="primary" style="width: 100px;margin-right: 30px" round @click="doLogin">登录</el-button>
 				<el-button size="medium" plain style="width: 100px" round>注册</el-button>
 			</div>
 		</div>
@@ -25,6 +25,11 @@ export default {
 			username: '',
 			password: '',
 			code: ''
+		}
+	},
+	methods: {
+		doLogin() {
+			this.$router.push("/user")
 		}
 	}
 }

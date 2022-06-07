@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>首页</h1>
-    <el-empty description="描述文字"></el-empty>
+    <el-empty description="色即是空，空即是色"></el-empty>
   </div>
 </template>
 
@@ -10,7 +10,3 @@ export default {
   name: "Home"
 }
 </script>
-
-<style scoped>
-
-</style>
