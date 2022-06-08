@@ -29,7 +29,7 @@ export default {
 	},
 	methods: {
 		doLogin() {
-			this.$router.push("/user")
+			this.$router.push("/welcome")
 		}
 	}
 }
