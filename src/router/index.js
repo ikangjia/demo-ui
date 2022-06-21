@@ -6,7 +6,7 @@ import User from "@/views/system/User";
 import Welcome from "@/views/Welcome";
 import Permission from "@/views/system/Permission";
 import AuditLog from "@/views/system/AuditLog";
-import Metadata from "@/views/data/Metadata";
+import Metadata from "@/views/geek/Metadata";
 import Sites from "@/views/geek/Sites";
 import Tag from "@/views/relationship/Tag";
 
@@ -40,15 +40,6 @@ const routes = [
 				component: Sites,
 				meta: {title: '个人站点', icon: 'el-icon-star-on'}
 			},
-		]
-	},
-	{
-		path: '/data',
-		component: Main,
-		name: '数据管理',
-		alwaysShow: true,
-		meta: {title: '数据管理', icon: 'el-icon-s-data'},
-		children: [
 			{
 				path: 'metadata',
 				name: 'Metadata',
